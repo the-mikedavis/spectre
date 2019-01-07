@@ -3,7 +3,8 @@
 Writing type specs is critical for code readability and can open wonderful
 doors of static code analysis for Elixir. So why do so many projects lack full
 specs? Well... it's kind of annoying when you need to go look up the
-documentation on exactly what `:file.consult/1` returns.
+documentation on exactly what `:file.consult/1` returns every time you wanna
+end a function with it.
 
 Spectre provides a mix task that tells you what the
 [`dialyzer`](http://erlang.org/doc/man/dialyzer.html) thinks your type specs
