@@ -1,21 +1,26 @@
 # Spectre
 
-**TODO: Add description**
+Writing type specs is critical for code readability and can open wonderful
+doors of static code analysis for Elixir. So why do so many projects lack full
+specs? Well... it's kind of annoying when you need to go look up the
+documentation on exactly what `:file.consult/1` returns.
+
+Spectre provides a mix task that tells you what the
+[`dialyzer`](http://erlang.org/doc/man/dialyzer.html) thinks your type specs
+should be.
+
+Spectre integrates closely with dialyxir. In fact, spectre uses dialyxir's
+PLT or _persistent lookup table_ (a file used to store the dialyzer's analyses).
+
+> Spectre is still under repl based developement (the most active, reckless
+> sort at that). Expect that spectre will only be usable once it's on Hex.pm.
 
 ## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `spectre` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:spectre, "~> 0.1.0"}
+    {:spectre, git: "git@github.com:the-mikedavis/spectre.git", runtime: false}
   ]
 end
 ```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/spectre](https://hexdocs.pm/spectre).
-
