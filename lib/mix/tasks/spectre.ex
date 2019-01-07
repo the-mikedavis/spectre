@@ -1,8 +1,14 @@
 defmodule Mix.Tasks.Spectre do
   use Mix.Task
 
+  @version Mix.Project.config[:version]
+
   @shortdoc "Generate specs on functions"
   @moduledoc """
+  # Spectre
+
+  Version #{@version}
+
   Spectre creates `@spec`s on functions that don't have any. Spectre
   does not perform any static type checking, and will try to spec every
   function even the code will create run-time errors.
@@ -23,7 +29,7 @@ defmodule Mix.Tasks.Spectre do
   @recursive false
 
   @impl Mix.Task
-  def run(argv) do
-    argv
+  def run(_argv) do
+    :ok
   end
 end
