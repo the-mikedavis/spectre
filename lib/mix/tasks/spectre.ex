@@ -71,7 +71,7 @@ defmodule Mix.Tasks.Spectre do
           [" could not be found."]
 
         spec ->
-          [" is ", :green, spec, :reset]
+          [" is \n", :green, spec, :reset]
       end
 
     (preamble ++ result)
