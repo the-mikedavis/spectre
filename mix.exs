@@ -21,7 +21,8 @@ defmodule Spectre.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:dialyxir, "~> 1.0.0-rc.4", runtime: false}
+      {:dialyxir, "~> 1.0.0-rc.4", runtime: false},
+      {:ex_types, git: "git@github.com:the-mikedavis/ex_types.git"}
     ]
   end
 end

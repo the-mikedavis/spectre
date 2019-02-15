@@ -4,9 +4,11 @@ defmodule Spectre do
   @dial Application.get_env(:spectre, :dialyzer_client, :dialyzer)
   @dial_plt Application.get_env(:spectre, :dialyzer_plt_client, :dialyzer_plt)
 
-  @type t_signature :: {{module(), atom(), non_neg_integer()}, list(), list()}
-  @type t_quote :: {atom(), list(), list()}
+  @type t_signature :: {mfa(), :erl_types.erl_type(), [:erl_types.erl_type()]}
 
+  @doc """
+  Return a list of source modules which the current project defines
+  """
   @spec source_modules() :: [module()]
   def source_modules do
     {:ok, modules} =
@@ -17,27 +19,52 @@ defmodule Spectre do
     modules
   end
 
-  @spec run() :: :ok
-  def run do
-    plt = Dialyxir.Project.plt_file()
+  @doc """
+  Ensures that the PLT
 
-    add_project_to_plt(plt, beams())
+  - exists
+  - contains the current project
 
-    Enum.each(source_modules(), &run(plt, &1))
+  Once it has passed those checks, the loaded PLT is returned.
+
+  Loaded PLTs may be used to lookup contracts and signatures.
+  """
+  @spec prepare_plt() :: {:ok, :dialyzer_plt.plt()}
+  def prepare_plt do
+    file = plt_file()
+
+    unless File.exists?(file) do
+      File.copy!(Dialyxir.Project.plt_file(), file)
+    end
+
+    add_project_to_plt(file, beams())
+
+    {:ok, @dial_plt.from_file(file)}
   end
 
-  @spec run(:dialyzer_plt.plt(), module()) :: :ok
+  @spec lookup(:dialyzer_plt.plt(), mfa()) :: {:ok, String.t()} | :error
+  def lookup(plt, mfa) do
+    case @dial_plt.lookup(plt, mfa) do
+      {:value, {range, domain}} ->
+        sig_to_spec_string({mfa, range, domain})
+
+      :none ->
+        :error
+    end
+  end
+
+  def run(plt), do: Enum.map(source_modules(), &run(plt, &1))
+
   defp run(plt, module) do
-    {:value, signatures} = @dial_plt.lookup_module(plt, mod)
+    {:value, signatures} = @dial_plt.lookup_module(plt, module)
 
     signatures
     # remove those that already have specs
     |> Enum.reject(fn {mfa, _r, _d} -> already_have_spec?(plt, mfa) end)
-    |> Enum.map(fn {mfa, _r, _d} = sig ->
-      {mfa, sig_to_spec_string(sig)}
+    |> Enum.map(fn {_mfa, _r, _d} = sig ->
+      sig
+      # {mfa, sig_to_spec_string(sig)}
     end)
-
-    :ok
   end
 
   # returns true if a function already has a spec defined, false otherwise
@@ -74,35 +101,20 @@ defmodule Spectre do
   @spec fun(integer()) :: map()
   def fun(num), do: %{num => num}
 
-  @spec sig_to_spec_string(t_signature()) :: t_quote()
+  @spec sig_to_spec_string(t_signature()) :: String.t()
   def sig_to_spec_string({{_module, fun, _arity}, range, domain}) do
-    inputs =
-      domain
-      |> Enum.map(&:erl_types.t_to_string/1)
-      |> Enum.join(", ")
-
-    "@spec #{fun}(#{inputs}) :: #{:erl_types.t_to_string(range)}"
-  end
-
-  @doc """
-  Produces a quote for a `@spec` given a function's signature.
-  """
-  @spec sig_to_spec_quote(t_signature()) :: t_quote()
-  def sig_to_spec_quote({{_module, fun, _arity}, _range, _domain}) do
-    {:@, [context: Elixir, import: Kernel],
-      [
-        {:spec, [context: Elixir],
-          [{:::, [], [{fun, [], [
-            # TODO replace with quoted form of input
-            {:integer, [], []}]},
-            # TODO replace with quoted form of output
-            {:map, [], []}
-          ]}]}
-      ]}
+    ExTypes.Spec.iolist(fun, domain, range)
   end
 
   @spec erlify_path(Path.t()) :: :file.filename()
   def erlify_path(path) do
     :unicode.characters_to_list(path, :file.native_name_encoding())
+  end
+
+  @spec plt_file() :: Path.t()
+  def plt_file do
+    Dialyxir.Project.plt_file()
+    |> String.replace("dialyxir", "spectre")
+    |> String.replace("deps-", "")
   end
 end
