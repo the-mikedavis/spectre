@@ -13,8 +13,26 @@ should be.
 Spectre integrates closely with dialyxir. In fact, spectre uses dialyxir's
 PLT or _persistent lookup table_ (a file used to store the dialyzer's analyses).
 
-> Spectre is still under repl based developement (the most active, reckless
-> sort at that). Expect that spectre will only be usable once it's on Hex.pm.
+## Usage
+
+You can use spectre to lookup the success typing on any function in the PLT.
+
+    mix spectre <module> <function> <arity>
+
+E.g.
+
+    mix spectre File read 1
+
+If you want to spec your entire project, you can do so with
+
+    mix spectre
+
+Recommended usage:
+
+1. Commit all your changes in your project directory.
+2. `mix spectre` in the project root.
+3. Use `git diff` to view the new specs.
+  - modify specs by hand for readability
 
 ## Installation
 

@@ -11,14 +11,14 @@ defmodule Mix.Tasks.Spectre do
 
   Spectre creates `@spec`s on functions that don't have any. Spectre
   does not perform any static type checking, and will try to spec every
-  function even the code will create run-time errors.
+  function even if the code will create run-time errors.
 
   ## Usage
 
   You can use spectre to lookup the success typing on any function in the
   PLT.
 
-      mix spectre <mdoule> <function> <arity>
+      mix spectre <module> <function> <arity>
 
   E.g.
 
