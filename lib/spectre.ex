@@ -42,11 +42,33 @@ defmodule Spectre do
     {:ok, @dial_plt.from_file(file)}
   end
 
-  @spec lookup(:dialyzer_plt.plt(), mfa()) :: {:ok, String.t()} | :error
-  def lookup(plt, mfa) do
+  @spec lookup(:dialyzer_plt.plt(), mfa(), Keyword.t()) :: {:ok, String.t()} | :error
+  def lookup(plt, mfa, output_type) do
+    output_fun =
+      case output_type do
+        [erl_type: true] ->
+          fn func ->
+            func
+            |> Kernel.inspect(limit: :infinity)
+            |> Code.format_string!()
+          end
+
+        [erlang: true] ->
+          fn {{_mod, f, _a}, range, domain} ->
+            dom =
+              domain
+              |> Enum.map(&:erl_types.t_to_string/1)
+              |> Enum.join(", ")
+
+            "#{f}(#{dom}) -> #{:erl_types.t_to_string(range)}"
+          end
+
+        _ -> &sig_to_spec_string/1
+      end
+
     case @dial_plt.lookup(plt, mfa) do
       {:value, {range, domain}} ->
-        sig_to_spec_string({mfa, range, domain})
+        output_fun.({mfa, range, domain})
 
       :none ->
         :error

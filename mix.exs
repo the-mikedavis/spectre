@@ -22,7 +22,8 @@ defmodule Spectre.MixProject do
   defp deps do
     [
       {:dialyxir, "~> 1.0.0-rc.4", runtime: false},
-      {:ex_types, git: "git@github.com:the-mikedavis/ex_types.git"}
+      {:ex_types, path: "../ex_types"}
+      # {:ex_types, git: "git@github.com:the-mikedavis/ex_types.git"}
     ]
   end
 end

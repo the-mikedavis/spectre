@@ -37,20 +37,23 @@ defmodule Mix.Tasks.Spectre do
   @preferred_cli_env :test
   @recursive false
 
+  @switches [erl_type: :boolean, erlang: :boolean]
+  @aliases [r: :erl_type, e: :erlang]
+
   @impl Mix.Task
-  def run([]) do
+  def run(argv) when is_list(argv) do
+    argv
+    |> OptionParser.parse(switches: @switches, aliases: @aliases)
+    |> run()
+  end
+
+  def run({_raw?, [], _rest}) do
     :ok
   end
 
-  def run([arg1]) do
-    case String.split(arg1) do
-      [_m, _f, _a] = argv -> run(argv)
-      _ -> usage()
-    end
-  end
+  def run({raw?, [mod, func, arity], _rest}) do
+    IO.puts("Preparing the PLT...")
 
-  def run([mod, func, arity]) do
-    IO.puts("Preparing the PLT")
     {:ok, plt} = Spectre.prepare_plt()
 
     mfa = {
@@ -66,7 +69,7 @@ defmodule Mix.Tasks.Spectre do
     preamble = ["The spec for ", :yellow, inspect_mfa(mfa), :reset]
 
     result =
-      case Spectre.lookup(plt, mfa) do
+      case Spectre.lookup(plt, mfa, raw?) do
         :error ->
           [" could not be found."]
 
